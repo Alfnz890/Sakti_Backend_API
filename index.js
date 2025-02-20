@@ -8,6 +8,7 @@ import dotenv from 'dotenv'
 import AuthRoute from './routers/AuthRoute.js'
 import cookieParser from 'cookie-parser'
 import HistoryRoute from './routers/HistoryRoute.js'
+import SpeakerRoute from './routers/SpeakerRoute.js'
 
 dotenv.config();
 
@@ -29,5 +30,6 @@ app.use(ReportRoute)
 app.use(EventRoute)
 app.use(AuthRoute)
 app.use(HistoryRoute)
+app.use(SpeakerRoute)
 
 app.listen(3000, () => console.log("OK..."))

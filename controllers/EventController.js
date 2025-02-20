@@ -19,10 +19,10 @@ export const AddEvent = async (req, res) => {
       date,
       time,
       details,
-      speakerName, speakerPosition, speakerBiography } = req.body;
+      speakerId
+   } = req.body;
 
    const file = req.files.file; // Event Image
-   const speakerImage = req.files.speakerImage; // Speaker Image
 
    const fileSize = file.data.length;
    const ext = path.extname(file.name);
@@ -34,29 +34,8 @@ export const AddEvent = async (req, res) => {
    if (!allowedType.includes(ext.toLowerCase())) return res.status(422).json({ msg: 'Invalid image' })
    if (fileSize > 5000000) return res.status(422).json({ mgs: 'Gambar terlalu besar!' })
 
-   let speakerImageFileName = null;
-   let speakerImageUrl = null;
-
-   if (speakerImage) {
-
-      const speakerImageSize = speakerImage.data.length;
-      const speakerExt = path.extname(speakerImage.name);
-      speakerImageFileName = speakerImage.md5 + speakerExt;
-      speakerImageUrl = `${req.protocol}://${req.get("host")}/images/${speakerImageFileName}`
-
-      if (!allowedType.includes(speakerExt.toLowerCase())) return res.status(422).json({ msg: 'Invalid speaker image' });
-      if (speakerImageSize > 5000000) return res.status(422).json({ msg: 'Speaker image terlalu besar!' });
-
-   }
-
    file.mv(`./public/images/${fileName}`, async (err) => {
       if (err) return res.status(500).json({ msg: err.message })
-
-      if (speakerImage) {
-         speakerImage.mv(`./public/images/${speakerImageFileName}`, async (err) => {
-            if (err) return res.status(500).json({ msg: err.message });
-         })
-      }
 
       try {
          const eventResponse = await prisma.event.create({
@@ -72,31 +51,18 @@ export const AddEvent = async (req, res) => {
                notes: notes,
                date: date,
                time: time,
-               details: details
+               details: details,
+               Speaker: speakerId ? { connect: { id: parseInt(speakerId) } } : undefined
             }
          })
 
-         const speakerResponse = await prisma.speaker.create({
-            data: {
-               speakerName: speakerName,
-               speakerImage: speakerImageFileName,
-               speakerBiography: speakerBiography,
-               speakerPosition: speakerPosition,
-               urlimage: speakerImageUrl,
-               Event: {
-                  connect: { id: eventResponse.id }
-               }
-            }
-         })
-
-         if (!eventResponse && !speakerResponse) {
+         if (!eventResponse) {
             res.status(400).json({ msg: "Something wrong i can feel it!" })
          }
 
          res.status(200).json({
             msg: "Event has been created!",
-            event: eventResponse,
-            speaker: speakerResponse
+            eventResponse,
          })
 
       } catch (error) {
@@ -179,7 +145,7 @@ export const UpdateEvent = async (req, res) => {
       date,
       time,
       details,
-      speakerName, speakerPosition, speakerBiography } = req.body;
+   } = req.body;
 
    const event = await prisma.event.findFirst({
       where: {
@@ -187,17 +153,7 @@ export const UpdateEvent = async (req, res) => {
       }
    })
 
-   const speaker = await prisma.speaker.findFirst({
-      where: {
-         id: Number(id)
-      }
-   })
-
-   if (!event || !speaker) return res.status(404).json({ msg: "Event or speaker not found!" })
-
    let eventImage = event.eventImage;
-   let speakerImage = speaker.speakerImage;
-
 
    if (req.files && req.files.file) {
 
@@ -232,37 +188,6 @@ export const UpdateEvent = async (req, res) => {
 
    const url = `${req.protocol}://${req.get("host")}/images/${eventImage}`
 
-   if (req.files && req.files.speakerImage) {
-      const speakerFile = req.files.speakerImage;
-      const speakerFileSize = speakerFile.data.length;
-      const speakerExt = path.extname(speakerFile.name);
-      const newSpeakerFileName = speakerFile.md5 + speakerExt;
-
-      const allowedType = ['.png', '.jpg', '.jpeg'];
-
-      if (!allowedType.includes(speakerExt.toLowerCase())) {
-         return res.status(422).json({ msg: 'Invalid speaker image format!' });
-      }
-      if (speakerFileSize > 5000000) {
-         return res.status(422).json({ msg: 'Speaker image is too large!' });
-      }
-
-      if (speaker.speakerImage) {
-         const oldImagePathSpeaker = `./public/images/${speaker.speakerImage}`;
-         if (fs.existsSync(oldImagePathSpeaker)) {
-            fs.unlinkSync(oldImagePathSpeaker);
-         }
-      }
-
-      speakerFile.mv(`./public/images/${newSpeakerFileName}`, (err) => {
-         if (err) return res.status(500).json({ msg: err.message });
-      });
-
-      speakerImage = newSpeakerFileName;
-   }
-
-   const urlimage = `${req.protocol}://${req.get("host")}/images/${speakerImage}`
-
    try {
 
       const updateEvent = await prisma.event.update({
@@ -284,19 +209,7 @@ export const UpdateEvent = async (req, res) => {
          }
       })
 
-      const updateSpeaker = await prisma.speaker.update({
-         data: {
-            speakerName: speakerName ?? speaker.speakerName,
-            speakerBiography: speakerBiography ?? speaker.speakerBiography,
-            speakerPosition: speakerPosition ?? speaker.speakerPosition,
-            speakerImage: speakerImage ?? speaker.speakerImage,
-            urlimage: urlimage ?? speaker.urlimage
-         }, where: {
-            id: Number(id)
-         }
-      })
-
-      if (!updateEvent && !updateSpeaker) return res.status(400).json({ msg: "Update event or update speaker is invalid!" })
+      if (!updateEvent) return res.status(400).json({ msg: "Update event or update speaker is invalid!" })
 
       res.status(200).json({ msg: "Event has been updated!", updateEvent })
 
@@ -333,7 +246,7 @@ export const GetEventById = async (req, res) => {
             EventUser: {
                include: {
                   User: true
-               }
+               },
             }
          }
       })

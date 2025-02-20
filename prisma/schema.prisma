@@ -1,92 +1,93 @@
 generator client {
-   provider = "prisma-client-js"
+  provider = "prisma-client-js"
 }
 
 datasource db {
-   provider = "postgresql"
-   url      = env("DATABASE_URL")
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
 }
 
 model User {
-   id          Int           @id @default(autoincrement())
-   name        String
-   email       String
-   password    String
-   phone       String
-   Certificate Certificate[]
-   EventUser   EventUser[]
-   histories   History[]
+  id          Int           @id @default(autoincrement())
+  name        String
+  email       String
+  password    String
+  phone       String
+  Certificate Certificate[]
+  EventUser   EventUser[]
+  histories   History[]
 }
 
 model Event {
-   id           Int           @id @default(autoincrement())
-   eventName    String?
-   place        String?
-   link         String?
-   status       String?
-   eventImage   String?
-   descriptions String?
-   reasons      String?
-   notes        String?
-   date         String?
-   time         String?
-   details      String?
-   url          String?
-   Certificate  Certificate[]
-   EventUser    EventUser[]
-   histories    History[]
-   Speaker      Speaker[]     @relation("EventToSpeakers")
+  id           Int           @id @default(autoincrement())
+  place        String?
+  link         String?
+  status       String?
+  descriptions String?
+  reasons      String?
+  notes        String?
+  date         String?
+  time         String?
+  details      String?
+  eventImage   String?
+  eventName    String?
+  url          String?
+  Certificate  Certificate[]
+  EventUser    EventUser[]
+  histories    History[]
+  Speaker      Speaker[]     @relation("EventToSpeakers")
 }
 
 model Speaker {
-   id               Int     @id @default(autoincrement())
-   speakerName      String?
-   speakerImage     String?
-   speakerBiography String?
-   speakerPosition  String?
-   eventId          Int?
-   urlimage         String?
-   Event            Event?  @relation("EventToSpeakers", fields: [eventId], references: [id])
+  id               Int     @id @default(autoincrement())
+  speakerName      String?
+  speakerImage     String?
+  speakerBiography String?
+  speakerPosition  String?
+  eventId          Int?
+  urlimage         String?
+  status           String? @db.VarChar
+  Event            Event?  @relation("EventToSpeakers", fields: [eventId], references: [id])
 }
 
 model History {
-   id       Int      @id @default(autoincrement())
-   userId   Int
-   eventId  Int
-   joinetAt DateTime @default(now())
-   event    Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
-   user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id       Int      @id @default(autoincrement())
+  userId   Int
+  eventId  Int
+  joinetAt DateTime @default(now())
+  event    Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-   @@unique([userId, eventId])
+  @@unique([userId, eventId])
 }
 
 model Certificate {
-   id        Int      @id @default(autoincrement())
-   userId    Int
-   eventId   Int
-   url       String
-   createdAt DateTime @default(now())
-   updatedAt DateTime @updatedAt
-   event     Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
-   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  eventId   Int
+  url       String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  event     Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model Report {
-   id        Int      @id @default(autoincrement())
-   title     String
-   body      String
-   image     String
-   author    String
-   url       String?
-   createdAt DateTime @default(now()) @db.Timestamp(6)
+  id        Int      @id @default(autoincrement())
+  title     String
+  body      String
+  image     String
+  author    String
+  url       String?
+  createdAt DateTime @default(now()) @db.Timestamp(6)
 }
 
 model EventUser {
-   id      Int   @id @default(autoincrement())
-   userId  Int
-   eventId Int
-   Event   Event @relation(fields: [eventId], references: [id])
-   User    User  @relation(fields: [userId], references: [id])
+  id      Int   @id @default(autoincrement())
+  userId  Int
+  eventId Int
+  Event   Event @relation(fields: [eventId], references: [id])
+  User    User  @relation(fields: [userId], references: [id])
 
-   @@unique([userId, eventId])
+  @@unique([userId, eventId])
 }
