@@ -145,6 +145,7 @@ export const UpdateEvent = async (req, res) => {
       date,
       time,
       details,
+      speakerId
    } = req.body;
 
    const event = await prisma.event.findFirst({
@@ -172,7 +173,7 @@ export const UpdateEvent = async (req, res) => {
       }
 
       if (event.eventImage) {
-         const oldImagePathEvent = `./public/images/${event.image}`;
+         const oldImagePathEvent = `./public/images/${event.eventImage}`;
          if (fs.existsSync(oldImagePathEvent)) {
             fs.unlinkSync(oldImagePathEvent);
          }
@@ -187,6 +188,14 @@ export const UpdateEvent = async (req, res) => {
    }
 
    const url = `${req.protocol}://${req.get("host")}/images/${eventImage}`
+
+   let speakerUpdate = undefined;
+
+   if (speakerId) {
+      speakerUpdate = parseInt(speakerId);
+   } else if (event.Speaker?.length > 0) {
+      speakerUpdate = event.Speaker[0].id;
+   }
 
    try {
 
@@ -203,7 +212,9 @@ export const UpdateEvent = async (req, res) => {
             time: time ?? event.time,
             details: details ?? event.details,
             eventImage: eventImage ?? event.eventImage,
-            url: url ?? event.url
+            url: url ?? event.url,
+            Speaker: speakerUpdate ? { set: [{ id: speakerUpdate }] } : { set: [] }
+
          }, where: {
             id: Number(id)
          }
