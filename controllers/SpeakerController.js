@@ -175,3 +175,18 @@ export const getSpeakerById = async (req, res) => {
       console.log({ msg: error.message });
    }
 }
+
+export const deleteSpeaker = async (req, res) => {
+   const { id } = req.params;
+   try {
+      const response = await prisma.speaker.delete({
+         where: {
+            id: Number(id)
+         }
+      })
+      if (!response) return res.status(404).json({ msg: "Speaker not found!" })
+      res.status(200).json({ msg: "Speaker has been deleted!", response })
+   } catch (error) {
+      console.error({ msg: error.message })
+   }
+}

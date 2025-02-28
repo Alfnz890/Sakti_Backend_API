@@ -153,7 +153,6 @@ export const UpdateEvent = async (req, res) => {
          id: Number(id)
       }
    })
-
    let eventImage = event.eventImage;
 
    if (req.files && req.files.file) {
@@ -354,3 +353,4 @@ export const countAllParticipans = async (req, res) => {
       console.log(error)
    }
 }
+

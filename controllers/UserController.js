@@ -6,17 +6,18 @@ import jwt from 'jsonwebtoken'
 // CREATE
 export const AddUser = async (req, res) => {
 
-   const { name, email, password, phone } = req.body;
+   const { name, password, first_name, phone, email } = req.body;
    const salt = await bcrypt.genSalt()
    const hashedPassword = await bcrypt.hash(password, salt);
 
    try {
       const response = await prisma.user.create({
          data: {
-            name: name,
-            email: email,
+            name: name, // -> username dari SALAM
             password: hashedPassword,
-            phone: phone
+            first_name: first_name,
+            phone: phone,
+            email: email
          }
       })
       res.status(201).json({ msg: "User has been created!", response })
@@ -126,11 +127,11 @@ export const DeleteUser = async (req, res) => {
 
 // GET USER BY ID
 export const GetUserById = async (req, res) => {
-   const { id } = req.params.id;
+   const id = req.params.id;
    try {
       const response = await prisma.user.findFirst({
          where: {
-            id: id
+            id: Number(id)
          }
       })
       res.status(200).json(response)
