@@ -1,0 +1,28 @@
+services:
+  postgres:
+    image: postgres:15
+    restart: always
+    environment:
+      POSTGRES_USER: root
+      POSTGRES_PASSWORD: root
+      POSTGRES_DB: sakti_be_docker
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  app:
+    build: .
+    container_name: sakti_be_docker
+    depends_on:
+      - postgres
+    environment:
+      - DATABASE_URL=postgresql://root:root@postgres:5432/sakti_be_docker
+    ports:
+      - "3000:3000"
+    volumes:
+      - .:/app
+    command: [ "sh", "-c", "npx prisma migrate dev && npm start" ]
+
+volumes:
+  postgres_data:

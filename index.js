@@ -9,6 +9,7 @@ import AuthRoute from './routers/AuthRoute.js'
 import cookieParser from 'cookie-parser'
 import HistoryRoute from './routers/HistoryRoute.js'
 import SpeakerRoute from './routers/SpeakerRoute.js'
+import CategoryRoute from './routers/CategoryRoute.js'
 
 dotenv.config();
 
@@ -23,6 +24,10 @@ app.use(cors({
    credentials: true
 }))
 
+app.get('/', (req, res) => {
+   res.send("Hola from sakti be!")
+})
+
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static('public'))
 app.use(UserRoute)
@@ -31,5 +36,6 @@ app.use(EventRoute)
 app.use(AuthRoute)
 app.use(HistoryRoute)
 app.use(SpeakerRoute)
+app.use(CategoryRoute)
 
 app.listen(3000, () => console.log("OK..."))

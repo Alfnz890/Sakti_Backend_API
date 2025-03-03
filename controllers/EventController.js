@@ -19,7 +19,8 @@ export const AddEvent = async (req, res) => {
       date,
       time,
       details,
-      speakerId
+      speakerId,
+      categoryId
    } = req.body;
 
    const file = req.files.file; // Event Image
@@ -52,6 +53,7 @@ export const AddEvent = async (req, res) => {
                date: date,
                time: time,
                details: details,
+               categoryId: categoryId ? parseInt(categoryId) : null,
                Speaker: speakerId ? { connect: { id: parseInt(speakerId) } } : undefined
             }
          })
@@ -260,7 +262,9 @@ export const GetEventById = async (req, res) => {
             }
          }
       })
-      res.status(200).json(response)
+      const participantCount = response.EventUser.length;
+
+      res.status(200).json({ ...response, participantCount })
    } catch (error) {
       res.status(500).json({ msg: error.message })
    }

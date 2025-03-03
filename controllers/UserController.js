@@ -13,7 +13,7 @@ export const AddUser = async (req, res) => {
    try {
       const response = await prisma.user.create({
          data: {
-            name: name, // -> username dari SALAM
+            name: name,
             password: hashedPassword,
             first_name: first_name,
             phone: phone,
@@ -90,21 +90,33 @@ export const UpdateUser = async (req, res) => {
 
    const { name, email, password, phone } = req.body;
    const { id } = req.params;
-   const salt = await bcrypt.genSalt()
-   const hashedPassword = await bcrypt.hash(password, salt);
 
    try {
+
+      const oldUser = await prisma.user.findFirst({
+         where: {
+            id: Number(id)
+         }
+      })
+
+      let hashedPassword = oldUser.password;
+      if (password) {
+         const salt = await bcrypt.genSalt()
+         hashedPassword = await bcrypt.hash(password, salt);
+      }
+
       const response = await prisma.user.update({
          where: {
             id: Number(id)
          }, data: {
-            name: name,
-            email: email,
+            name: name || oldUser.name,
+            email: email || oldUser.email,
             password: hashedPassword,
-            phone: phone
+            phone: phone || oldUser.phone,
+            first_name: oldUser.first_name
          }
       })
-      res.status(200).json({ msg: "User has been updated!", response })
+      res.status(200).json({ msg: "User has been updated!", data: response })
    } catch (error) {
       res.status(500).json({ msg: error.message })
    }
